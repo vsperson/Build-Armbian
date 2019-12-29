@@ -123,7 +123,7 @@ get_package_list_hash()
 
 # create_sources_list <release> <basedir>
 #
-# <release>: stretch|buster|xenial|bionic|disco|eoan
+# <release>: stretch|buster|bullseye|xenial|bionic|eoan|focal
 # <basedir>: path to root directory
 #
 create_sources_list()
@@ -133,7 +133,7 @@ create_sources_list()
 	[[ -z $basedir ]] && exit_with_error "No basedir passed to create_sources_list"
 
 	case $release in
-	stretch|buster)
+	stretch|buster|bullseye)
 	cat <<-EOF > $basedir/etc/apt/sources.list
 	deb http://${DEBIAN_MIRROR} $release main contrib non-free
 	#deb-src http://${DEBIAN_MIRROR} $release main contrib non-free
@@ -149,7 +149,7 @@ create_sources_list()
 	EOF
 	;;
 
-	xenial|bionic|disco|eoan)
+	xenial|bionic|eoan|focal)
 	cat <<-EOF > $basedir/etc/apt/sources.list
 	deb http://${UBUNTU_MIRROR} $release main restricted universe multiverse
 	#deb-src http://${UBUNTU_MIRROR} $release main restricted universe multiverse
@@ -412,7 +412,9 @@ function distro_menu ()
 			if [[ "${distro_support[$i]}" != "supported" && $EXPERT != "yes" ]]; then
 				:
 			else
-				options+=("$i" "${distro_name[$i]}")
+				local text=""
+				[[ $EXPERT == "yes" ]] && local text="(${distro_support[$i]})"
+				options+=("$i" "${distro_name[$i]} $text")
 			fi
 			DISTRIBUTION_STATUS=${distro_support[$i]}
 			break
@@ -454,7 +456,7 @@ addtorepo()
 # parameter "delete" remove incoming directory if publishing is succesful
 # function: cycle trough distributions
 
-	local distributions=("xenial" "stretch" "bionic" "buster" "disco" "eoan")
+	local distributions=("xenial" "stretch" "bionic" "buster" "bullseye" "eoan" "focal")
 	local errors=0
 
 	for release in "${distributions[@]}"; do
@@ -565,7 +567,7 @@ addtorepo()
 
 
 repo-manipulate() {
-	local DISTROS=("xenial" "stretch" "bionic" "buster" "disco" "eoan")
+	local DISTROS=("xenial" "stretch" "bionic" "buster" "bullseye" "eoan" "focal")
 	case $@ in
 		serve)
 			# display repository content
@@ -710,7 +712,7 @@ prepare_host()
 	#
 	# NO_HOST_RELEASE_CHECK overrides the check for a supported host system
 	# Disable host OS check at your own risk, any issues reported with unsupported releases will be closed without a discussion
-	if [[ -z $codename || "xenial bionic disco eoan" != *"$codename"* ]]; then
+	if [[ -z $codename || "xenial bionic eoan focal" != *"$codename"* ]]; then
 		if [[ $NO_HOST_RELEASE_CHECK == yes ]]; then
 			display_alert "You are running on an unsupported system" "${codename:-(unknown)}" "wrn"
 			display_alert "Do not report any errors, warnings or other issues encountered beyond this point" "" "wrn"
@@ -723,7 +725,7 @@ prepare_host()
 		exit_with_error "Windows subsystem for Linux is not a supported build environment"
 	fi
 
-	if [[ -z $codename || "disco" == "$codename" || "eoan" == "$codename" ]]; then
+	if [[ -z $codename || "focal" == "$codename" || "eoan" == "$codename" ]]; then
 	    hostdeps="${hostdeps/lib32ncurses5 lib32tinfo5/lib32ncurses6 lib32tinfo6}"
 	fi
 
@@ -917,30 +919,39 @@ download_and_verify()
 	local localdir=$SRC/cache/${remotedir//_}
 	local dirname=${filename//.tar.xz}
 
+        if [[ $DOWNLOAD_MIRROR == china ]]; then
+		local server="https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
+			else
+		local server="https://dl.armbian.com/"
+        fi
+
 	if [[ -f ${localdir}/${dirname}/.download-complete ]]; then
 		return
 	fi
 
 	cd ${localdir}
 
-	# download control file
-	if [[ ! `wget -S --spider https://dl.armbian.com/$remotedir/${filename}.asc 2>&1 >/dev/null | grep 'HTTP/1.1 200 OK'` ]]; then
+	# use local control file
+	if [[ -f $SRC/config/torrents/${filename}.asc ]]; then
+		local torrent=$SRC/config/torrents/${filename}.torrent
+		ln -s $SRC/config/torrents/${filename}.asc ${localdir}/${filename}.asc
+	elif [[ ! `wget -S --spider ${server}${remotedir}/${filename}.asc 2>&1 >/dev/null | grep 'HTTP/1.1 200 OK'` ]]; then
 		return
+	else
+		# download control file
+		local torrent=${server}torrent/${filename}.torrent
+		aria2c --download-result=hide --disable-ipv6=true --summary-interval=0 --console-log-level=error --auto-file-renaming=false \
+		--continue=false --allow-overwrite=true --dir=${localdir} $(webseed "$remotedir/${filename}.asc") -o "${filename}.asc"
+		[[ $? -ne 0 ]] && display_alert "Failed to download control file" "" "wrn"
 	fi
 
-	aria2c --download-result=hide --disable-ipv6=true --summary-interval=0 --console-log-level=error --auto-file-renaming=false \
-	--continue=false --allow-overwrite=true --dir=${localdir} $(webseed "$remotedir/${filename}.asc") -o "${filename}.asc"
-	[[ $? -ne 0 ]] && display_alert "Failed to download control file" "" "wrn"
-
-
 	# download torrent first
-	if [[ `wget -S --spider https://dl.armbian.com/torrent/${filename}.torrent 2>&1 >/dev/null \
-		| grep 'HTTP/1.1 200 OK'` && ${USE_TORRENT} == "yes" ]]; then
+	if [[ ${USE_TORRENT} == "yes" ]]; then
 
 		display_alert "downloading using torrent network" "$filename"
 		local ariatorrent="--summary-interval=0 --auto-save-interval=0 --seed-time=0 --bt-stop-timeout=15 --console-log-level=error \
 		--allow-overwrite=true --download-result=hide --rpc-save-upload-metadata=false --auto-file-renaming=false \
-		--file-allocation=trunc --continue=true https://dl.armbian.com/torrent/${filename}.torrent \
+		--file-allocation=trunc --continue=true ${torrent} \
 		--dht-file-path=$SRC/cache/.aria2/dht.dat --disable-ipv6=true --stderr --follow-torrent=mem --dir=${localdir}"
 
 		# exception. It throws error if dht.dat file does not exists. Error suppress needed only at first download.
@@ -957,7 +968,7 @@ download_and_verify()
 
 	# direct download if torrent fails
 	if [[ ! -f ${localdir}/${filename}.complete ]]; then
-		if [[ `wget -S --spider https://dl.armbian.com/${remotedir}/${filename} 2>&1 >/dev/null \
+		if [[ `wget -S --spider ${server}${remotedir}/${filename} 2>&1 >/dev/null \
 			| grep 'HTTP/1.1 200 OK'` ]]; then
 			display_alert "downloading using http(s) network" "$filename"
 			aria2c --download-result=hide --rpc-save-upload-metadata=false --console-log-level=error \
