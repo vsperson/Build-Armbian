@@ -48,12 +48,12 @@ echo $DEV_EMMC
 
 echo "Start backup u-boot default"
 
-dd if="${DEV_EMMC}" of=/boot/u-boot-default-rk3399.img bs=1M count=16
+dd if="${DEV_EMMC}" of=/root/u-boot-default-rk3399.img bs=1M count=16
 
 dd if=/dev/zero of="${DEV_EMMC}" bs=512 count=1
 
-dd if=/boot/u-boot-default-rk3399.img of="${DEV_EMMC}" bs=1 count=442
-dd if=/boot/u-boot-default-rk3399.img of="${DEV_EMMC}" bs=512 skip=1 seek=1
+dd if=/root/u-boot-default-rk3399.img of="${DEV_EMMC}" bs=1 count=442
+dd if=/root/u-boot-default-rk3399.img of="${DEV_EMMC}" bs=512 skip=1 seek=1
 
 echo "Start create MBR and partittion"
 
@@ -63,12 +63,12 @@ parted -s "${DEV_EMMC}" mkpart primary ext4 263M 100%
 
 echo "Start update u-boot"
 
-if [ -f /boot/u-boot-rk3399/uboot.img ] ; then
-    dd if=/boot/u-boot-rk3399/uboot.img of="${DEV_EMMC}" conv=fsync seek=16384
+if [ -f /root/u-boot/u-boot-rk3399/uboot.img ] ; then
+    dd if=/root/u-boot/u-boot-rk3399/uboot.img of="${DEV_EMMC}" conv=fsync seek=16384
 fi
 
-#if [ -f /boot/u-boot-rk3399/trust.img ] ; then
-#    dd if=/boot/u-boot-rk3399/trust.img of="${DEV_EMMC}" conv=fsync seek=24576
+#if [ -f /root/u-boot/u-boot-rk3399/trust.img ] ; then
+#    dd if=/root/u-boot/u-boot-rk3399/trust.img of="${DEV_EMMC}" conv=fsync seek=24576
 #fi
 
 sync
@@ -105,12 +105,13 @@ echo "done."
 
 echo -n "Edit init config..."
 sed -e "s/ROOTFS/ROOT_EMMC/g" \
- -i "$DIR_INSTALL/extlinux/extlinux.conf"
+ -i "$DIR_INSTALL/uEnv.txt"
 echo "done."
 
 rm $DIR_INSTALL/s9*
 rm $DIR_INSTALL/aml*
 rm $DIR_INSTALL/boot.ini
+mv -f $DIR_INSTALL/boot-emmc.scr $DIR_INSTALL/boot.scr
 
 umount $DIR_INSTALL
 
@@ -178,7 +179,7 @@ echo "Copy fstab"
 rm $DIR_INSTALL/etc/fstab
 cp -a /root/fstab $DIR_INSTALL/etc/fstab
 
-rm $DIR_INSTALL/root/install.sh
+rm $DIR_INSTALL/root/install*.sh
 rm $DIR_INSTALL/root/fstab
 rm $DIR_INSTALL/usr/bin/ddbr
 

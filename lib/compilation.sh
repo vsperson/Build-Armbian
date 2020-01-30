@@ -405,7 +405,7 @@ compile_kernel()
 		ARCH=$ARCHITECTURE \
 		DEBFULLNAME="$MAINTAINER" \
 		DEBEMAIL="$MAINTAINERMAIL" \
-		CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" 2>>$DEST/debug/compilation.log' \
+		CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" ' \
 		${PROGRESS_LOG_TO_FILE:+' | tee -a $DEST/debug/compilation.log'} \
 		${OUTPUT_DIALOG:+' | dialog --backtitle "$backtitle" --progressbox "Creating kernel packages..." $TTY_Y $TTY_X'} \
 		${OUTPUT_VERYSILENT:+' >/dev/null 2>/dev/null'}

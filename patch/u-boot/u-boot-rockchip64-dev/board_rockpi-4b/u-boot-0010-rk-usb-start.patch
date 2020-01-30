@@ -1,0 +1,14 @@
+--- a/include/configs/rockchip-common.h
++++ b/include/configs/rockchip-common.h
+@@ -14,9 +14,9 @@
+ /* First try to boot from SD (index 1), then eMMC (index 0) */
+ #ifdef CONFIG_CMD_USB
+ #define BOOT_TARGET_DEVICES(func) \
++	func(USB, usb, 0) \
+ 	func(MMC, mmc, 1) \
+ 	func(MMC, mmc, 0) \
+-	func(USB, usb, 0) \
+ 	func(PXE, pxe, na) \
+ 	func(DHCP, dchp, na)
+ #else
+

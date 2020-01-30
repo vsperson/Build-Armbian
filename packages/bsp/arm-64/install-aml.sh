@@ -48,18 +48,18 @@ echo $DEV_EMMC
 
 echo "Start backup u-boot default"
 
-dd if="${DEV_EMMC}" of=/boot/u-boot-default-aml.img bs=1M count=4
+dd if="${DEV_EMMC}" of=/root/u-boot-default-aml.img bs=1M count=4
 
 echo "Start create MBR and partittion"
 
 parted -s "${DEV_EMMC}" mklabel msdos
-parted -s "${DEV_EMMC}" mkpart primary fat32 700M 828M
-parted -s "${DEV_EMMC}" mkpart primary ext4 829M 100%
+parted -s "${DEV_EMMC}" mkpart primary fat32 700M 956M
+parted -s "${DEV_EMMC}" mkpart primary ext4 957M 100%
 
 echo "Start restore u-boot"
 
-dd if=/boot/u-boot-default-aml.img of="${DEV_EMMC}" conv=fsync bs=1 count=442
-dd if=/boot/u-boot-default-aml.img of="${DEV_EMMC}" conv=fsync bs=512 skip=1 seek=1
+dd if=/root/u-boot-default-aml.img of="${DEV_EMMC}" conv=fsync bs=1 count=442
+dd if=/root/u-boot-default-aml.img of="${DEV_EMMC}" conv=fsync bs=512 skip=1 seek=1
 
 sync
 
@@ -95,12 +95,19 @@ echo "done."
 
 echo -n "Edit init config..."
 sed -e "s/ROOTFS/ROOT_EMMC/g" \
- -i "$DIR_INSTALL/uEnv.ini"
+ -i "$DIR_INSTALL/uEnv.txt"
 echo "done."
 
 rm $DIR_INSTALL/s9*
 rm $DIR_INSTALL/aml*
 rm $DIR_INSTALL/boot.ini
+mv -f $DIR_INSTALL/boot-emmc.scr $DIR_INSTALL/boot.scr
+
+if [ -f /boot/u-boot.ext ] ; then
+    mv -f $DIR_INSTALL/u-boot.sd $DIR_INSTALL/u-boot.emmc
+    mv -f $DIR_INSTALL/boot-emmc.ini $DIR_INSTALL/boot.ini
+    sync
+fi
 
 umount $DIR_INSTALL
 
@@ -168,7 +175,7 @@ echo "Copy fstab"
 rm $DIR_INSTALL/etc/fstab
 cp -a /root/fstab $DIR_INSTALL/etc/fstab
 
-rm $DIR_INSTALL/root/install.sh
+rm $DIR_INSTALL/root/install*.sh
 rm $DIR_INSTALL/root/fstab
 rm $DIR_INSTALL/usr/bin/ddbr
 

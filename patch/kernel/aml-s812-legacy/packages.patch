@@ -1,0 +1,29 @@
+--- a/scripts/package/builddeb
++++ b/scripts/package/builddeb
+@@ -104,11 +104,11 @@
+ libc_headers_dir="$objtree/debian/headertmp"
+ dtb_dir="$objtree/debian/dtbtmp"
+ dbg_dir="$objtree/debian/dbgtmp"
+-packagename=linux-image"$LOCALVERSION"
+-fwpackagename=linux-firmware-image"$LOCALVERSION"
+-kernel_headers_packagename=linux-headers"$LOCALVERSION"
+-dtb_packagename=linux-dtb"$LOCALVERSION"
+-libc_headers_packagename=linux-libc-dev"$LOCALVERSION"
++packagename=linux-image"$BRANCH$LOCALVERSION"
++fwpackagename=linux-firmware-image"$BRANCH$LOCALVERSION"
++kernel_headers_packagename=linux-headers"$BRANCH$LOCALVERSION"
++dtb_packagename=linux-dtb"$BRANCH$LOCALVERSION"
++libc_headers_packagename=linux-libc-dev"$BRANCH$LOCALVERSION"
+ dbg_packagename=$packagename-dbg
+ 
+ if [ "$ARCH" = "um" ] ; then
+@@ -126,7 +126,7 @@
+ 	installed_image_path="boot/vmlinux-$version"
+ 	;;
+ *)
+-	installed_image_path="boot/uImage-$version"
++	installed_image_path="boot/vmlinuz-$version"
+ esac
+ 
+ BUILD_DEBUG="$(grep -s '^CONFIG_DEBUG_INFO=y' $KCONFIG_CONFIG || true)"
+
