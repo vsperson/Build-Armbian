@@ -1,13 +1,148 @@
-diff --git a/include/configs/odroid-g12-common.h b/include/configs/odroid-g12-common.h
-index 1539e68..3828642 100644
 --- a/include/configs/odroid-g12-common.h
 +++ b/include/configs/odroid-g12-common.h
-@@ -96,7 +96,7 @@
+@@ -90,11 +90,11 @@
+ #define ENV_PXE_DEFAULT
+ #endif
  
- #define ENV_BOOT_ORDER_DEFAULT			"boot_order=mmc rawimage usb pxe spi\0"
+-#define ENV_MMC_LIST_DEFAULT			"mmc_list=0 1\0"
++#define ENV_MMC_LIST_DEFAULT			"mmc_list=1 0\0"
  
--#define ENV_BOOTSCRIPTS_DEFAULT			"boot_scripts=boot.ini boot.scr\0"
-+#define ENV_BOOTSCRIPTS_DEFAULT			"boot_scripts=boot.ini boot.scr /boot/boot.ini /boot/boot.scr\0"
+ #define ENV_USB_LIST_DEFAULT			"usb_list=0 1 2 3\0"
  
- #define ENV_BOOT_ATTEMPT_DEFAULT			\
- 	"boot_attempt="					\
+-#define ENV_BOOT_ORDER_DEFAULT			"boot_order=mmc rawimage usb pxe spi\0"
++#define ENV_BOOT_ORDER_DEFAULT			"boot_order=usb mmc\0"
+ 
+ #define ENV_BOOTSCRIPTS_DEFAULT			"boot_scripts=boot.ini boot.scr\0"
+ 
+@@ -124,7 +124,6 @@
+ 		"for n in ${usb_list}; do "		\
+ 			"setenv devnum ${n}; "		\
+ 			"setenv devno ${n}; "		\
+-			"setenv mmc_dev ${n}; "		\
+ 			"run boot_attempt; "		\
+ 		"done\0"
+ 
+@@ -133,6 +132,8 @@
+ 		"for devtype in ${boot_order}; do "	\
+ 			"run boot_${devtype}; "		\
+ 		"done\0"
++
++#define CONFIG_DELAY_ENVIRONMENT
+ 
+ /* args/envs */
+ #define CONFIG_SYS_MAXARGS  64
+@@ -173,49 +174,6 @@
+         "initargs="\
+             "rootfstype=ramfs init=/init console=ttyS0,115200n8 no_console_suspend earlyprintk=aml-uart,0xff803000 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
+             "\0"\
+-        "switch_bootmode=" \
+-            "get_rebootmode;" \
+-            "if test ${reboot_mode} = factory_reset; then " \
+-                "run boot_recovery;" \
+-            "else if test ${reboot_mode} = selfinstall; then " \
+-                "oem fdisk;" \
+-                "run boot_recovery;" \
+-            "else if test ${reboot_mode} = cold_boot; then " \
+-                /*"run try_auto_burn; "*/ \
+-            "else if test ${reboot_mode} = fastboot; then " \
+-                "fastboot;" \
+-            "fi;fi;fi;fi;" \
+-            "\0" \
+-        "boot_recovery="\
+-            "hdmitx edid; "\
+-            "if test ${hdmimode} = custombuilt; then setenv cmode modeline=${modeline} customwidth=${customwidth} customheight=${customheight}; fi; "\
+-            "if test ${hdmimode} = 2160p30hz || test ${hdmimode} = 2160p60hz; then setenv hdmimode 1080p60hz; fi; "\
+-            "setenv bootargs ${initargs} logo=${display_layer},loaded,${fb_addr} "\
+-                "vout=${hdmimode},enable hdmimode=${hdmimode} ${cmode} voutmode=${voutmode} "\
+-                "cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} "\
+-                "androidboot.selinux=permissive jtag=disable "\
+-                "androidboot.hardware=" CONFIG_DEVICE_PRODUCT " "\
+-                "recovery_part=recovery recovery_offset=0; "\
+-            "for n in ${mmc_list}; do "\
+-                "mmc dev ${n}; " \
+-                "movi read recovery 0 ${loadaddr}; " \
+-                "movi read dtbs 0 ${dtb_mem_addr}; " \
+-                "booti ${loadaddr} - ${dtb_mem_addr}; " \
+-                "bootm;" \
+-            "done\0" \
+-        "boot_rawimage=" \
+-	    "setenv bootargs ${initargs} logo=${display_layer},loaded,${fb_addr} " \
+-            "vout=${outputmode},enable cvbsmode=${cvbsmode} " \
+-            "hdmimode=${hdmimode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} " \
+-            "androidboot.selinux=permissive androidboot.firstboot=${firstboot} jtag=disable " \
+-            "androidboot.hardware=" CONFIG_DEVICE_PRODUCT "; " \
+-            "for n in ${mmc_list}; do " \
+-                "mmc dev ${n}; " \
+-	        "movi read boot 0 ${loadaddr}; " \
+-	        "movi read dtbs 0 ${dtb_mem_addr}; " \
+-	        "booti ${loadaddr} - ${dtb_mem_addr}; " \
+-	        "bootm; " \
+-            "done\0" \
+         "init_display="\
+             "osd open; osd clear; " \
+             "for n in ${mmc_list}; do " \
+@@ -241,62 +199,9 @@
+ 	"bios_sizeof_kernel=0x3c0000\0" \
+ 	"bios_offset_initrd=0x004e0000\0" \
+ 	"bios_sizeof_initrd=0x320000\0" \
+-	"spiupdate_uboot="\
+-		"sf probe; "\
+-		"load mmc 1 ${loadaddr} u-boot.bin; "\
+-		"sf update ${loadaddr} ${bios_offset_uboot} ${bios_sizeof_uboot}\0"\
+-	"spiupdate_dtb="\
+-		"sf probe; "\
+-		"load mmc 1 ${loadaddr} meson64_odroidn2_spibios.dtb; "\
+-		"sf update ${loadaddr} ${bios_offset_dtb} ${bios_sizeof_dtb}\0"\
+-	"spiupdate_kernel="\
+-		"sf probe; "\
+-		"load mmc 1 ${loadaddr} uImage; "\
+-		"sf update ${loadaddr} ${bios_offset_kernel} ${bios_sizeof_kernel}\0"\
+-	"spiupdate_initrd="\
+-		"sf probe; "\
+-		"load mmc 1 ${loadaddr} rootfs.cpio.uboot; "\
+-		"sf update ${loadaddr} ${bios_offset_initrd} ${bios_sizeof_initrd}\0"\
+-	"spiupdate_full="\
+-		"sf probe; "\
+-		"load mmc 1 ${preloadaddr} spiboot.img; "\
+-		"sf update ${preloadaddr} 0 ${filesize}\0"\
+-	"petitboot,interface=eth0\0"\
+-	"petitboot,timeout=10\0"\
+-	"petitboot,autoboot=true\0"\
+-	"petitboot,console=" CONFIG_DEFAULT_CONSOLE \
+-	"boot_spi="\
+-		"sf probe; "\
+-		"sf read ${preloadaddr} ${bios_offset_kernel} ${bios_sizeof_kernel}; "\
+-		"sf read ${ramdisk_addr_r} ${bios_offset_initrd} ${bios_sizeof_initrd}; "\
+-		"sf read ${fdt_addr_r} ${bios_offset_dtb} ${bios_sizeof_dtb}; "\
+-		"if test -e mmc 1:1 petitboot.cfg; then "\
+-			"load mmc 1:1 ${loadaddr} petitboot.cfg; "\
+-			"ini petitboot; "\
+-		"fi; " \
+-		"if test -e mmc 1:1 spiboot.img; then " \
+-			"fdt addr ${fdt_addr_r}; " \
+-			"fdt resize; " \
+-			"fdt set /emmc@ffe07000 status 'disabled'; " \
+-			"fdt set /soc/cbus/spifc@14000 status 'okay'; " \
+-		"fi; " \
+-		"hdmitx edid; "\
+-		"osd open; osd clear; vout output ${outputmode}; "\
+-		"setenv bootargs ${initargs} console=tty0 "\
+-			"logo=osd0,loaded,0x3d800000 "\
+-			"osd_reverse=0 video_reverse=0 vout=${vout} "\
+-			"hdmimode=${hdmimode} voutmode=${voutmode} modeline=${modeline} "\
+-			"customwidth=${customwidth} customheight=${customheight} "\
+-			"petitboot,write?=true "\
+-			"petitboot,autoboot=${petitboot,autoboot} "\
+-			"petitboot,bootdevs=${petitboot,bootdevs} "\
+-			"petitboot,console=${petitboot,console} "\
+-			"petitboot,interface=${petitboot,interface} "\
+-			"petitboot,timeout=${petitboot,timeout}; "\
+-		"bootm ${preloadaddr} ${ramdisk_addr_r} ${fdt_addr_r};\0"
+ 
+ #define CONFIG_PREBOOT  \
+-            "run switch_bootmode;"
++            ""
+ 
+ #define CONFIG_BOOTCOMMAND			"run boot_default"
+ 
+

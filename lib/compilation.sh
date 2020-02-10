@@ -276,15 +276,6 @@ compile_kernel()
 	fi
 	cd "$kerneldir"
 
-	# this is a patch that Ubuntu Trusty compiler works
-	# TODO: Check if still required
-	if [[ $(patch --dry-run -t -p1 < $SRC/patch/misc/compiler.patch | grep Reversed) != "" ]]; then
-		display_alert "Patching kernel for compiler support"
-		patch --batch --silent -t -p1 < $SRC/patch/misc/compiler.patch >> $DEST/debug/output.log 2>&1
-	fi
-
-	advanced_patch "kernel" "$KERNELPATCHDIR" "$BOARD" "" "$BRANCH" "$LINUXFAMILY-$BRANCH"
-
 	if ! grep -qoE '^-rc[[:digit:]]+' <(grep "^EXTRAVERSION" Makefile | head -1 | awk '{print $(NF)}'); then
 		sed -i 's/EXTRAVERSION = .*/EXTRAVERSION = /' Makefile
 	fi
@@ -295,6 +286,8 @@ compile_kernel()
 
 	# build 3rd party drivers
 	compilation_prepare
+
+	advanced_patch "kernel" "$KERNELPATCHDIR" "$BOARD" "" "$BRANCH" "$LINUXFAMILY-$BRANCH"
 
 	# create linux-source package - with already patched sources
 	local sources_pkg_dir=$SRC/.tmp/${CHOSEN_KSRC}_${REVISION}_all
@@ -308,6 +301,9 @@ compile_kernel()
 			| pixz -4 > $sources_pkg_dir/usr/src/linux-source-${version}-${LINUXFAMILY}.tar.xz
 		cp COPYING $sources_pkg_dir/usr/share/doc/linux-source-${version}-${LINUXFAMILY}/LICENSE
 	fi
+
+	# re-read kernel version after patching
+	local version=$(grab_version "$kerneldir")
 
 	# create patch for manual source changes in debug mode
 	[[ $CREATE_PATCHES == yes ]] && userpatch_create "kernel"
@@ -405,7 +401,7 @@ compile_kernel()
 		ARCH=$ARCHITECTURE \
 		DEBFULLNAME="$MAINTAINER" \
 		DEBEMAIL="$MAINTAINERMAIL" \
-		CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" ' \
+		CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" 2>>$DEST/debug/compilation.log' \
 		${PROGRESS_LOG_TO_FILE:+' | tee -a $DEST/debug/compilation.log'} \
 		${OUTPUT_DIALOG:+' | dialog --backtitle "$backtitle" --progressbox "Creating kernel packages..." $TTY_Y $TTY_X'} \
 		${OUTPUT_VERYSILENT:+' >/dev/null 2>/dev/null'}

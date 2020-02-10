@@ -64,8 +64,9 @@ parted -s "${DEV_EMMC}" mkpart primary ext4 263M 100%
 echo "Start update u-boot"
 
 if [ -f /root/u-boot/u-boot-aw/uboot.img ] ; then
-    echo "Start install u-boot to eMMC"
-    dd if=/root/u-boot/u-boot-aw/uboot.img of="${DEV_EMMC}" conv=fsync bs=1k seek=8
+    echo "Start install u-boot spl to eMMC"
+    dd if=/root/u-boot/u-boot-aw/uboot.img of="${DEV_EMMC}" bs=1 count=442
+    dd if=/root/u-boot/u-boot-aw/uboot.img of="${DEV_EMMC}" bs=512 skip=1 seek=1
 fi
 
 sync

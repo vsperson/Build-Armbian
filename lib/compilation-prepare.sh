@@ -17,7 +17,7 @@ compilation_prepare()
 	# Maintaining one from central location starting with 5.3+
 	# Temporally set for new "default->legacy,next->current" family naming
 
-	if linux-version compare $version ge 5.3 && [[ "$BRANCH" == current || "$BRANCH" == dev ]]; then
+	if linux-version compare $version ge 5.3 && [[ "$BRANCH" == current || "$BRANCH" == dev ]] && [[ "$BOARDFAMILY" != "rk3328-tv" ]] && [[ "$BOARDFAMILY" != "rk3399-tv" ]] && [[ "$BOARDFAMILY" != "aml-s9xxx" ]] && [[ "$BOARDFAMILY" != "arm-64" ]] && [[ "$BOARDFAMILY" != "aw-h6-tv" ]]; then
 		display_alert "Adjustin" "packaging" "info"
 		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
 		process_patch_file "${SRC}/patch/misc/general-packaging-5.3.y.patch"                "applying"
@@ -35,10 +35,16 @@ compilation_prepare()
 		process_patch_file "${SRC}/patch/misc/general-packaging-4.14.y.patch"                "applying"
 	fi
 
-	if [[ $version == "4.4."* || $version == "4.9."* ]] && [[ "$LINUXFAMILY" == rockpis || "$LINUXFAMILY" == rockchip64 || "$LINUXFAMILY" == rk3399 ]]; then
+	if [[ $version == "4.4."* || $version == "4.9."* ]] && [[ "$LINUXFAMILY" == rockpis || "$LINUXFAMILY" == rk3399 ]]; then
 		display_alert "Adjustin" "packaging" "info"
 		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
 		process_patch_file "${SRC}/patch/misc/general-packaging-4.4.y-rk3399.patch"                "applying"
+	fi
+
+	if [[ $version == "4.4."* ]] && [[ "$LINUXFAMILY" == rockchip64 ]]; then
+		display_alert "Adjustin" "packaging" "info"
+		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
+		process_patch_file "${SRC}/patch/misc/general-packaging-4.4.y-rockchip64.patch"                "applying"
 	fi
 
 	if [[ $version == "4.4."* ]] && [[ "$LINUXFAMILY" == rockchip ]]; then

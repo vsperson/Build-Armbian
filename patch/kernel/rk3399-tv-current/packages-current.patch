@@ -67,8 +67,8 @@
  dbg_dir="$objtree/debian/dbgtmp"
 -packagename=linux-image-$version
 -kernel_headers_packagename=linux-headers-$version
-+packagename=linux-image-current"$LOCALVERSION"
-+kernel_headers_packagename=linux-headers-current"$LOCALVERSION"
++packagename=linux-image-"$BRANCH$LOCALVERSION"
++kernel_headers_packagename=linux-headers-"$BRANCH$LOCALVERSION"
  libc_headers_packagename=linux-libc-dev
  dbg_packagename=$packagename-dbg
 +debarch=
