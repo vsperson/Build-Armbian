@@ -58,8 +58,8 @@ dd if=/root/u-boot-default-rk3328.img of="${DEV_EMMC}" bs=512 skip=1 seek=1
 echo "Start create MBR and partittion"
 
 parted -s "${DEV_EMMC}" mklabel msdos
-parted -s "${DEV_EMMC}" mkpart primary fat32 16M 262M
-parted -s "${DEV_EMMC}" mkpart primary ext4 263M 100%
+parted -s "${DEV_EMMC}" mkpart primary fat32 16M 528M
+parted -s "${DEV_EMMC}" mkpart primary ext4 529M 100%
 
 echo "Start update u-boot"
 
