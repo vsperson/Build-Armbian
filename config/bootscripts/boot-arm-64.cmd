@@ -14,6 +14,8 @@ for devtype in "usb mmc" ; do
 				setenv bootargs ${bootargs} mac=${mac}
 			elif printenv eth_mac; then
 				setenv bootargs ${bootargs} mac=${eth_mac}
+			elif printenv ethaddr; then
+				setenv bootargs ${bootargs} mac=${ethaddr}
 			fi
 			if load ${devtype} ${devnum} ${kernel_addr_r} ${LINUX}; then
 				if load ${devtype} ${devnum} ${ramdisk_addr_r} ${INITRD}; then
