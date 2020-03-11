@@ -81,14 +81,14 @@ index 0000000000..c217955a39
 +		regulator-max-microvolt = <3300000>;
 +	};
 +
-+//	reg_vcc5v: vcc5v {
-+//		/* board wide 5V supply directly from the DC jack */
-+//		compatible = "regulator-fixed";
-+//		regulator-name = "vcc-5v";
-+//		regulator-min-microvolt = <5000000>;
-+//		regulator-max-microvolt = <5000000>;
-+//		regulator-always-on;
-+//	};
++	reg_vcc5v: vcc5v {
++		/* board wide 5V supply directly from the DC jack */
++		compatible = "regulator-fixed";
++		regulator-name = "vcc-5v";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++	};
 +};
 +
 +&de {
@@ -191,14 +191,14 @@ index 0000000000..d471a24dd5
 +# CONFIG_SPL_EFI_PARTITION is not set
 +CONFIG_DEFAULT_DEVICE_TREE="sun50i-h6-eachlink-h6-mini"
 +CONFIG_USB=y
-+#CONFIG_USB_XHCI_HCD=y
-+#CONFIG_USB_XHCI_DWC3=y
++CONFIG_USB_XHCI_HCD=y
++CONFIG_USB_XHCI_DWC3=y
 +CONFIG_USB_EHCI_HCD=y
-+#CONFIG_USB_EHCI_GENERIC=y
++CONFIG_USB_EHCI_GENERIC=y
 +CONFIG_USB_OHCI_HCD=y
-+#CONFIG_USB_OHCI_GENERIC=y
-+#CONFIG_USB_DWC2=y
-+#CONFIG_USB_DWC3=y
++CONFIG_USB_OHCI_GENERIC=y
++CONFIG_USB_DWC2=y
++CONFIG_USB_DWC3=y
 -- 
 2.22.0
 
