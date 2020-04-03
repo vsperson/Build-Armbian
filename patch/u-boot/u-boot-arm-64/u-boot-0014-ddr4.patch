@@ -1,0 +1,12 @@
+--- a/arch/arm/mach-rockchip/sdram.c
++++ b/arch/arm/mach-rockchip/sdram.c
+@@ -139,7 +139,7 @@
+ 		if (dram_type == DDR4) {
+ 			dbw = (sys_reg2 >> SYS_REG_DBW_SHIFT(ch)) &
+ 				SYS_REG_DBW_MASK;
+-			bg = (dbw == 2) ? 2 : 1;
++			bg = (dbw == 1) ? 1 : 2;
+ 		}
+ 		chipsize_mb = (1 << (cs0_row + cs0_col + bk + bg + bw - 20));
+ 
+

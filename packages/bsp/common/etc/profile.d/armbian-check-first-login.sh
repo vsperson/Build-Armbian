@@ -114,6 +114,8 @@ if [ -f /root/.not_logged_in_yet ] && [ -n "$BASH_VERSION" ] && [ "$-" != "${-#*
 	# check whether desktop environment has to be considered
 	if [ -n "$desktop_lightdm" ] && [ -n "$RealName" ] ; then
 
+			/usr/bin/sound.sh
+
 			# 1st run goes without login
 			mkdir -p /etc/lightdm/lightdm.conf.d
 			cat <<-EOF > /etc/lightdm/lightdm.conf.d/22-armbian-autologin.conf
