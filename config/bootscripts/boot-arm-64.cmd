@@ -1,4 +1,5 @@
 echo "start mainline u-boot"
+if printenv bootfromsd; then exit; fi;
 setenv loadaddr "0x44000000"
 setenv l_mmc "0 1 2 3"
 for devtype in "usb mmc" ; do

@@ -18,12 +18,12 @@ compilation_prepare()
 	# Maintaining one from central location starting with 5.3+
 	# Temporally set for new "default->legacy,next->current" family naming
 
-	if linux-version compare $version ge 5.6 && [[ "$BRANCH" == current || "$BRANCH" == dev ]]; then
+	if linux-version compare $version ge 5.6 && [[ "$BRANCH" == current || "$BRANCH" == dev ]] && [[ "$BOARDFAMILY" != "aml-s812" ]]; then
 		display_alert "Adjusting" "packaging" "info"
 		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
 		process_patch_file "${SRC}/patch/misc/general-packaging-5.6.y.patch" "applying"
 	else
-		if linux-version compare $version ge 5.3 && [[ "$BRANCH" == current || "$BRANCH" == dev ]]; then
+		if linux-version compare $version ge 5.3 && [[ "$BRANCH" == current || "$BRANCH" == dev ]] && [[ "$BOARDFAMILY" != "aml-s812" ]]; then
 			display_alert "Adjusting" "packaging" "info"
 			cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
 			process_patch_file "${SRC}/patch/misc/general-packaging-5.3.y.patch" "applying"
@@ -176,9 +176,9 @@ compilation_prepare()
 		${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8189es/Kconfig
 
 		# Patch
-		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8189es/
-		process_patch_file "${SRC}/patch/misc/wireless-rtl8189es.patch"                "applying"
-		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
+#		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8189es/
+#		process_patch_file "${SRC}/patch/misc/wireless-rtl8189es.patch"                "applying"
+#		cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
 
 		# Add to section Makefile
 		echo "obj-\$(CONFIG_RTL8189ES) += rtl8189es/" >> $SRC/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/Makefile
@@ -394,7 +394,7 @@ compilation_prepare()
 		$SRC/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/Kconfig
 
 		# kernel 5.6 ->
-		process_patch_file "${SRC}/patch/misc/wireless-rtl88x2bu.patch" "applying"
+#		process_patch_file "${SRC}/patch/misc/wireless-rtl88x2bu.patch" "applying"
 
 	fi
 
