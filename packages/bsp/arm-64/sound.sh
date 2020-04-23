@@ -15,8 +15,13 @@ if [ -f $HOME/.config/sound.conf ]; then
 else
 
 # get card num
-#  card=`echo $1 | sed 's/[^0-9]*//g'`
-card=`aplay -l | grep "device 0" | awk '{print$3}'`
+#card=`echo $1 | sed 's/[^0-9]*//g'`
+card1=`aplay -l | grep "device 0" | awk '{print $3}'`
+#echo $card
+
+for card in $card1 
+do
+
 echo $card
 
 # set common mixer params
@@ -137,6 +142,13 @@ echo $card
 # Amlogic GX HDMI and S/PDIF
   mixer $card 'AIU HDMI CTRL SRC' 'I2S'
   mixer $card 'AIU SPDIF SRC SEL' 'SPDIF'
+
+# RockPI 4B Analog
+  mixer $card 'Right Headphone Mixer Right DAC' on
+  mixer $card 'Left Headphone Mixer Left DAC' on
+
+done
+
 fi
 
 exit 0
