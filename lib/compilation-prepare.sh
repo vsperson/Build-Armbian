@@ -542,37 +542,4 @@ compilation_prepare()
 
 	fi
 
-
-    # Wireless drivers for Realtek 8822CS chipsets
-
-    if linux-version compare $version ge 5.5 && [ "$EXTRAWIFI" == yes ]; then
-
-    # attach to specifics tag or branch
-    local rtl8822csver="branch:master"
-
-    display_alert "Adding" "Wireless drivers for Realtek 8822CS chipsets ${rtl8822csver}" "info"
-
-#    fetch_from_repo "https://github.com/ChalesYu/rtl8822cs" "rtl8822cs" "${rtl8822csver}" "yes"
-    cd ${SRC}/cache/sources/${LINUXSOURCEDIR}
-    rm -rf ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8822cs
-    mkdir -p ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8822cs/
-    cp -R ${SRC}/cache/sources/rtl8822cs/${rtl8822csver#*:}/{core,hal,include,os_dep,platform,halmac.mk,rtl8822c.mk} \
-    ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8822cs
-
-    # Makefile
-    cp ${SRC}/cache/sources/rtl8822cs/${rtl8822csver#*:}/Makefile \
-    ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8822cs/Makefile
-    cp ${SRC}/cache/sources/rtl8822cs/${rtl8822csver#*:}/Kconfig \
-    ${SRC}/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/rtl8822cs/Kconfig
-
-    # Add to section Makefile
-    echo "obj-\$(CONFIG_RTL8822CS) += rtl8822cs/" >> $SRC/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/Makefile
-    sed -i '/source "drivers\/net\/wireless\/ti\/Kconfig"/a source "drivers\/net\/wireless\/rtl8822cs\/Kconfig"' \
-    $SRC/cache/sources/${LINUXSOURCEDIR}/drivers/net/wireless/Kconfig
-
-    # Patch
-#    process_patch_file "${SRC}/patch/misc/wireless-rtl8822cs.patch"                "applying"
-
-    fi
-
 }
