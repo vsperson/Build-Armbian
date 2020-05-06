@@ -46,7 +46,7 @@ build tools</h3>
 ```text
 apt -y install git
 git clone https://github.com/150balbes/Build-Armbian
-cd build
+cd Build-Armbian
 ./compile.sh
 ```
 <a href="#how-to-build-an-image-or-a-kernel"><img src=".github/README.gif" alt="Armbian logo" width="100%"></a>
