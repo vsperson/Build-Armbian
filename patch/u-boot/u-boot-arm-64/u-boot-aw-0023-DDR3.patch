@@ -29,7 +29,7 @@ index 528fb909d5..c463aca190 100644
  	sun50i-h5-orangepi-zero-plus2.dtb
  dtb-$(CONFIG_MACH_SUN50I_H6) += \
 +	sun50i-h6-eachlink-h6-mini.dtb \
- 	sun50i-h6-orangepi-3.dtb \
+ 	sun50i-h6-beelink-gs1.dtb \
  	sun50i-h6-orangepi-lite2.dtb \
  	sun50i-h6-orangepi-one-plus.dtb \
 diff --git a/arch/arm/dts/sun50i-h6-eachlink-h6-mini.dts b/arch/arm/dts/sun50i-h6-eachlink-h6-mini.dts
@@ -37,7 +37,7 @@ new file mode 100644
 index 0000000000..c217955a39
 --- /dev/null
 +++ b/arch/arm/dts/sun50i-h6-eachlink-h6-mini.dts
-@@ -0,0 +1,128 @@
+@@ -0,0 +1,116 @@
 +// SPDX-License-Identifier: (GPL-2.0+ or MIT)
 +/*
 + * Copyright (c) 2018 Arm Ltd.
@@ -95,10 +95,6 @@ index 0000000000..c217955a39
 +	status = "okay";
 +};
 +
-+&dwc3 {
-+    status = "okay";
-+};
-+
 +&hdmi {
 +	status = "okay";
 +};
@@ -110,16 +106,12 @@ index 0000000000..c217955a39
 +};
 +
 +&ehci0 {
-+//	phys = <&usb2phy 0>;
++	phys = <&usb2phy 0>;
 +	status = "okay";
 +};
 +
 +&ehci3 {
 +	status = "okay";
-+};
-+
-+&i2c3 {
-+    status = "okay";
 +};
 +
 +&mmc0 {
@@ -139,7 +131,7 @@ index 0000000000..c217955a39
 +};
 +
 +&ohci0 {
-+//	phys = <&usb2phy 0>;
++	phys = <&usb2phy 0>;
 +	status = "okay";
 +};
 +
@@ -159,20 +151,15 @@ index 0000000000..c217955a39
 +};
 +
 +&usb2phy {
-+//	usb0_vbus-supply = <&reg_vcc5v>;
++	usb0_vbus-supply = <&reg_vcc5v>;
 +	status = "okay";
 +};
-+
-+&usb3phy {
-+    status = "okay";
-+};
-
 diff --git a/configs/eachlink_h6_mini_defconfig b/configs/eachlink_h6_mini_defconfig
 new file mode 100644
 index 0000000000..d471a24dd5
 --- /dev/null
 +++ b/configs/eachlink_h6_mini_defconfig
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,16 @@
 +CONFIG_ARM=y
 +CONFIG_ARCH_SUNXI=y
 +CONFIG_SPL=y
@@ -186,19 +173,9 @@ index 0000000000..d471a24dd5
 +# CONFIG_SYS_MALLOC_CLEAR_ON_INIT is not set
 +CONFIG_SPL_TEXT_BASE=0x20060
 +# CONFIG_CMD_FLASH is not set
-+CONFIG_CMD_USB=y
 +# CONFIG_SPL_DOS_PARTITION is not set
 +# CONFIG_SPL_EFI_PARTITION is not set
 +CONFIG_DEFAULT_DEVICE_TREE="sun50i-h6-eachlink-h6-mini"
-+CONFIG_USB=y
-+CONFIG_USB_XHCI_HCD=y
-+CONFIG_USB_XHCI_DWC3=y
-+CONFIG_USB_EHCI_HCD=y
-+CONFIG_USB_EHCI_GENERIC=y
-+CONFIG_USB_OHCI_HCD=y
-+CONFIG_USB_OHCI_GENERIC=y
-+CONFIG_USB_DWC2=y
-+CONFIG_USB_DWC3=y
 -- 
 2.22.0
 
