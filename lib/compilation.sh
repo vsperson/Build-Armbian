@@ -24,6 +24,7 @@
 
 compile_atf()
 {
+if [[ $ADD_UBOOT == yes ]]; then
 	if [[ $CLEAN_LEVEL == *make* ]]; then
 		display_alert "Cleaning" "$ATFSOURCEDIR" "info"
 		(cd $SRC/cache/sources/$ATFSOURCEDIR; make distclean > /dev/null 2>&1)
@@ -38,15 +39,15 @@ compile_atf()
 
 	display_alert "Compiling ATF" "" "info"
 
-	local toolchain=$(find_toolchain "$ATF_COMPILER" "$ATF_USE_GCC")
-	[[ -z $toolchain ]] && exit_with_error "Could not find required toolchain" "${ATF_COMPILER}gcc $ATF_USE_GCC"
+#	local toolchain=$(find_toolchain "$ATF_COMPILER" "$ATF_USE_GCC")
+#	[[ -z $toolchain ]] && exit_with_error "Could not find required toolchain" "${ATF_COMPILER}gcc $ATF_USE_GCC"
 
-	if [[ -n $ATF_TOOLCHAIN2 ]]; then
-		local toolchain2_type=$(cut -d':' -f1 <<< $ATF_TOOLCHAIN2)
-		local toolchain2_ver=$(cut -d':' -f2 <<< $ATF_TOOLCHAIN2)
-		local toolchain2=$(find_toolchain "$toolchain2_type" "$toolchain2_ver")
-		[[ -z $toolchain2 ]] && exit_with_error "Could not find required toolchain" "${toolchain2_type}gcc $toolchain2_ver"
-	fi
+#	if [[ -n $ATF_TOOLCHAIN2 ]]; then
+#		local toolchain2_type=$(cut -d':' -f1 <<< $ATF_TOOLCHAIN2)
+#		local toolchain2_ver=$(cut -d':' -f2 <<< $ATF_TOOLCHAIN2)
+#		local toolchain2=$(find_toolchain "$toolchain2_type" "$toolchain2_ver")
+#		[[ -z $toolchain2 ]] && exit_with_error "Could not find required toolchain" "${toolchain2_type}gcc $toolchain2_ver"
+#	fi
 
 	display_alert "Compiler version" "${ATF_COMPILER}gcc $(eval env PATH=$toolchain:$PATH ${ATF_COMPILER}gcc -dumpversion)" "info"
 
@@ -90,6 +91,7 @@ compile_atf()
 
 	# copy license file to pack it to u-boot package later
 	[[ -f license.md ]] && cp license.md $atftempdir/
+fi
 }
 
 
@@ -310,8 +312,8 @@ compile_kernel()
 
 	display_alert "Compiling $BRANCH kernel" "$version" "info"
 
-	local toolchain=$(find_toolchain "$KERNEL_COMPILER" "$KERNEL_USE_GCC")
-	[[ -z $toolchain ]] && exit_with_error "Could not find required toolchain" "${KERNEL_COMPILER}gcc $KERNEL_USE_GCC"
+#	local toolchain=$(find_toolchain "$KERNEL_COMPILER" "$KERNEL_USE_GCC")
+#	[[ -z $toolchain ]] && exit_with_error "Could not find required toolchain" "${KERNEL_COMPILER}gcc $KERNEL_USE_GCC"
 
 	display_alert "Compiler version" "${KERNEL_COMPILER}gcc $(eval env PATH=$toolchain:$PATH ${KERNEL_COMPILER}gcc -dumpversion)" "info"
 

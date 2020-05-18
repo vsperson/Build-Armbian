@@ -783,11 +783,11 @@ prepare_host()
 {
 	display_alert "Preparing" "host" "info"
 
-	if [[ $(dpkg --print-architecture) != amd64 ]]; then
-		display_alert "Please read documentation to set up proper compilation environment"
-		display_alert "http://www.armbian.com/using-armbian-tools/"
-		exit_with_error "Running this tool on non x86-x64 build host in not supported"
-	fi
+#	if [[ $(dpkg --print-architecture) != amd64 ]]; then
+#		display_alert "Please read documentation to set up proper compilation environment"
+#		display_alert "http://www.armbian.com/using-armbian-tools/"
+#		exit_with_error "Running this tool on non x86-x64 build host in not supported"
+#	fi
 
 	# wait until package manager finishes possible system maintanace
 	wait_for_package_manager
@@ -802,7 +802,7 @@ prepare_host()
 	parted pkg-config libncurses5-dev whiptail debian-keyring debian-archive-keyring f2fs-tools libfile-fcntllock-perl rsync libssl-dev \
 	nfs-kernel-server btrfs-progs ncurses-term p7zip-full kmod dosfstools libc6-dev-armhf-cross \
 	curl patchutils liblz4-tool libpython2.7-dev linux-base swig aptly acl python3-dev \
-	locales ncurses-base pixz dialog systemd-container udev lib32stdc++6 libc6-i386 lib32ncurses5 lib32tinfo5 \
+	locales ncurses-base pixz dialog systemd-container udev libc6 \
 	bison libbison-dev flex libfl-dev cryptsetup gpgv1 gnupg1 cpio aria2 pigz dirmngr python3-distutils"
 
 	local codename=$(lsb_release -sc)
@@ -837,26 +837,26 @@ prepare_host()
 		exit_with_error "Windows subsystem for Linux is not a supported build environment"
 	fi
 
-	if [[ -z $codename || "focal" == "$codename" || "eoan" == "$codename" ]]; then
-	    hostdeps="${hostdeps/lib32ncurses5 lib32tinfo5/lib32ncurses6 lib32tinfo6}"
-	fi
+#	if [[ -z $codename || "focal" == "$codename" || "eoan" == "$codename" ]]; then
+#	    hostdeps="${hostdeps/lib32ncurses5 lib32tinfo5/lib32ncurses6 lib32tinfo6}"
+#	fi
 
-	grep -q i386 <(dpkg --print-foreign-architectures) || dpkg --add-architecture i386
-	if systemd-detect-virt -q -c; then
-		display_alert "Running in container" "$(systemd-detect-virt)" "info"
-		# disable apt-cacher unless NO_APT_CACHER=no is not specified explicitly
-		if [[ $NO_APT_CACHER != no ]]; then
-			display_alert "apt-cacher is disabled in containers, set NO_APT_CACHER=no to override" "" "wrn"
-			NO_APT_CACHER=yes
-		fi
-		CONTAINER_COMPAT=yes
-		# trying to use nested containers is not a good idea, so don't permit EXTERNAL_NEW=compile
-		if [[ $EXTERNAL_NEW == compile ]]; then
-			display_alert "EXTERNAL_NEW=compile is not available when running in container, setting to prebuilt" "" "wrn"
-			EXTERNAL_NEW=prebuilt
-		fi
-		SYNC_CLOCK=no
-	fi
+#	grep -q i386 <(dpkg --print-foreign-architectures) || dpkg --add-architecture i386
+#	if systemd-detect-virt -q -c; then
+#		display_alert "Running in container" "$(systemd-detect-virt)" "info"
+#		# disable apt-cacher unless NO_APT_CACHER=no is not specified explicitly
+#		if [[ $NO_APT_CACHER != no ]]; then
+#			display_alert "apt-cacher is disabled in containers, set NO_APT_CACHER=no to override" "" "wrn"
+#			NO_APT_CACHER=yes
+#		fi
+#		CONTAINER_COMPAT=yes
+#		# trying to use nested containers is not a good idea, so don't permit EXTERNAL_NEW=compile
+#		if [[ $EXTERNAL_NEW == compile ]]; then
+#			display_alert "EXTERNAL_NEW=compile is not available when running in container, setting to prebuilt" "" "wrn"
+#			EXTERNAL_NEW=prebuilt
+#		fi
+#		SYNC_CLOCK=no
+#	fi
 
 	# warning: apt-cacher-ng will fail if installed and used both on host and in container/chroot environment with shared network
 	# set NO_APT_CACHER=yes to prevent installation errors in such case
@@ -870,19 +870,19 @@ prepare_host()
 	done
 
 	# distribution packages are buggy, download from author
-	if [[ ! -f /etc/apt/sources.list.d/aptly.list ]]; then
-		display_alert "Updating from external repository" "aptly" "info"
-		if [ x"" != x$http_proxy ]; then
-			apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --keyserver-options http-proxy=$http_proxy --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
-			apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --keyserver-options http-proxy=$http_proxy --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
-		else
-			apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
-			apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
-		fi
-		echo "deb http://repo.aptly.info/ nightly main" > /etc/apt/sources.list.d/aptly.list
-	else
-		sed "s/squeeze/nightly/" -i /etc/apt/sources.list.d/aptly.list
-	fi
+#	if [[ ! -f /etc/apt/sources.list.d/aptly.list ]]; then
+#		display_alert "Updating from external repository" "aptly" "info"
+#		if [ x"" != x$http_proxy ]; then
+#			apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --keyserver-options http-proxy=$http_proxy --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
+#			apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --keyserver-options http-proxy=$http_proxy --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
+#		else
+#			apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
+#			apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys ED75B5A4483DA07C >/dev/null 2>&1
+#		fi
+#		echo "deb http://repo.aptly.info/ nightly main" > /etc/apt/sources.list.d/aptly.list
+#	else
+#		sed "s/squeeze/nightly/" -i /etc/apt/sources.list.d/aptly.list
+#	fi
 
 	if [[ ${#deps[@]} -gt 0 ]]; then
 		display_alert "Installing build dependencies"
@@ -898,17 +898,17 @@ prepare_host()
 		ntpdate -s ${NTP_SERVER:- pool.ntp.org}
 	fi
 
-	if [[ $(dpkg-query -W -f='${db:Status-Abbrev}\n' 'zlib1g:i386' 2>/dev/null) != *ii* ]]; then
-		apt install -qq -y --no-install-recommends zlib1g:i386 >/dev/null 2>&1
-	fi
+#	if [[ $(dpkg-query -W -f='${db:Status-Abbrev}\n' 'zlib1g:i386' 2>/dev/null) != *ii* ]]; then
+#		apt install -qq -y --no-install-recommends zlib1g:i386 >/dev/null 2>&1
+#	fi
 
 	# enable arm binary format so that the cross-architecture chroot environment will work
-	if [[ $KERNEL_ONLY != yes ]]; then
-		modprobe -q binfmt_misc
-		mountpoint -q /proc/sys/fs/binfmt_misc/ || mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
-		test -e /proc/sys/fs/binfmt_misc/qemu-arm || update-binfmts --enable qemu-arm
-		test -e /proc/sys/fs/binfmt_misc/qemu-aarch64 || update-binfmts --enable qemu-aarch64
-	fi
+#	if [[ $KERNEL_ONLY != yes ]]; then
+#		modprobe -q binfmt_misc
+#		mountpoint -q /proc/sys/fs/binfmt_misc/ || mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
+#		test -e /proc/sys/fs/binfmt_misc/qemu-arm || update-binfmts --enable qemu-arm
+#		test -e /proc/sys/fs/binfmt_misc/qemu-aarch64 || update-binfmts --enable qemu-aarch64
+#	fi
 
 	# create directory structure
 	mkdir -p $SRC/{cache,output} $USERPATCHES_PATH
@@ -922,47 +922,48 @@ prepare_host()
 	fi
 	mkdir -p $DEST/debs-beta/extra $DEST/debs/extra $DEST/{config,debug,patch} $USERPATCHES_PATH/overlay $SRC/cache/{sources,toolchains,utility,rootfs} $SRC/.tmp
 
-	display_alert "Checking for external GCC compilers" "" "info"
+#	display_alert "Checking for external GCC compilers" "" "info"
 	# download external Linaro compiler and missing special dependencies since they are needed for certain sources
 
-	local toolchains=(
-		"https://dl.armbian.com/_toolchains/gcc-linaro-aarch64-none-elf-4.8-2013.11_linux.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-arm-none-eabi-4.8-2014.04_linux.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04_linux.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabi.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-eabi.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabi.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu.tar.xz"
-		)
+#	local toolchains=(
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-aarch64-none-elf-4.8-2013.11_linux.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-arm-none-eabi-4.8-2014.04_linux.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04_linux.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabi.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-eabi.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabi.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu.tar.xz"
+#		"https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-aarch64-arm-none-eabi.tar.xz"
+#		)
 
-	for toolchain in ${toolchains[@]}; do
-		download_and_verify "_toolchains" "${toolchain##*/}"
-	done
+#	for toolchain in ${toolchains[@]}; do
+#		download_and_verify "_toolchains" "${toolchain##*/}"
+#	done
 
-	rm -rf $SRC/cache/toolchains/*.tar.xz*
-	local existing_dirs=( $(ls -1 $SRC/cache/toolchains) )
-	for dir in ${existing_dirs[@]}; do
-		local found=no
-		for toolchain in ${toolchains[@]}; do
-			local filename=${toolchain##*/}
-			local dirname=${filename//.tar.xz}
-			[[ $dir == $dirname ]] && found=yes
-		done
-		if [[ $found == no ]]; then
-			display_alert "Removing obsolete toolchain" "$dir"
-			rm -rf $SRC/cache/toolchains/$dir
-		fi
-	done
+#	rm -rf $SRC/cache/toolchains/*.tar.xz*
+#	local existing_dirs=( $(ls -1 $SRC/cache/toolchains) )
+#	for dir in ${existing_dirs[@]}; do
+#		local found=no
+#		for toolchain in ${toolchains[@]}; do
+#			local filename=${toolchain##*/}
+#			local dirname=${filename//.tar.xz}
+#			[[ $dir == $dirname ]] && found=yes
+#		done
+#		if [[ $found == no ]]; then
+#			display_alert "Removing obsolete toolchain" "$dir"
+#			rm -rf $SRC/cache/toolchains/$dir
+#		fi
+#	done
 
 	[[ ! -f $USERPATCHES_PATH/customize-image.sh ]] && cp $SRC/config/templates/customize-image.sh.template $USERPATCHES_PATH/customize-image.sh
 
