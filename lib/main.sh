@@ -286,7 +286,7 @@ distro_support['xenial']="eos"
 distro_name['bionic']="Ubuntu Bionic 18.04 LTS"
 distro_support['bionic']="supported"
 distro_name['focal']="Ubuntu Focal 20.04 LTS"
-distro_support['focal']="csc"
+distro_support['focal']="supported"
 distro_name['eoan']="Ubuntu Eoan 19.10"
 distro_support['eoan']="csc"
 
@@ -410,6 +410,7 @@ if [[ $IGNORE_UPDATES != yes ]]; then
 	fetch_from_repo "https://github.com/MarvellEmbeddedProcessors/binaries-marvell" "marvell-binaries" "branch:binaries-marvell-armada-18.12"
 	fetch_from_repo "https://github.com/armbian/odroidc2-blobs" "odroidc2-blobs" "branch:master"
 	fetch_from_repo "https://github.com/armbian/testings" "testing-reports" "branch:master"
+	fetch_from_repo "https://gitlab.com/superna9999/amlogic-boot-fip" "amlogic-boot-fip" "branch:master"
 fi
 
 compile_sunxi_tools
