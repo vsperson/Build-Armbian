@@ -119,15 +119,15 @@ if [[ $ADD_UBOOT == yes ]]; then
 
 	display_alert "Compiling u-boot" "$version" "info"
 
-	local toolchain=$(find_toolchain "$UBOOT_COMPILER" "$UBOOT_USE_GCC")
-	[[ -z $toolchain ]] && exit_with_error "Could not find required toolchain" "${UBOOT_COMPILER}gcc $UBOOT_USE_GCC"
+#	local toolchain=$(find_toolchain "$UBOOT_COMPILER" "$UBOOT_USE_GCC")
+#	[[ -z $toolchain ]] && exit_with_error "Could not find required toolchain" "${UBOOT_COMPILER}gcc $UBOOT_USE_GCC"
 
-	if [[ -n $UBOOT_TOOLCHAIN2 ]]; then
-		local toolchain2_type=$(cut -d':' -f1 <<< $UBOOT_TOOLCHAIN2)
-		local toolchain2_ver=$(cut -d':' -f2 <<< $UBOOT_TOOLCHAIN2)
-		local toolchain2=$(find_toolchain "$toolchain2_type" "$toolchain2_ver")
-		[[ -z $toolchain2 ]] && exit_with_error "Could not find required toolchain" "${toolchain2_type}gcc $toolchain2_ver"
-	fi
+#	if [[ -n $UBOOT_TOOLCHAIN2 ]]; then
+#		local toolchain2_type=$(cut -d':' -f1 <<< $UBOOT_TOOLCHAIN2)
+#		local toolchain2_ver=$(cut -d':' -f2 <<< $UBOOT_TOOLCHAIN2)
+#		local toolchain2=$(find_toolchain "$toolchain2_type" "$toolchain2_ver")
+#		[[ -z $toolchain2 ]] && exit_with_error "Could not find required toolchain" "${toolchain2_type}gcc $toolchain2_ver"
+#	fi
 
 
 	display_alert "Compiler version" "${UBOOT_COMPILER}gcc $(eval env PATH=$toolchain:$toolchain2:$PATH ${UBOOT_COMPILER}gcc -dumpversion)" "info"
