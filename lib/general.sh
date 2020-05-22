@@ -783,7 +783,7 @@ prepare_host()
 {
 	display_alert "Preparing" "host" "info"
 
-	if [[ $(dpkg --print-architecture) != aarch64 ]]; then
+	if [[ $(dpkg --print-architecture) != arm64 ]]; then
 
 	if [[ $(dpkg --print-architecture) != amd64 ]]; then
 		display_alert "Please read documentation to set up proper compilation environment"
