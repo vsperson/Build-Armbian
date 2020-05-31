@@ -61,12 +61,12 @@ update_src() {
 				fi
 			done
 		else
-			git checkout "${LIB_TAG:-master-arm}"
+			git checkout "${LIB_TAG:-master}"
 		fi
 	fi
 }
 
-TMPFILE=`mktemp`
+TMPFILE=`mktemp` && chmod 644 $TMPFILE
 echo SRC=$SRC > $TMPFILE
 echo LIB_TAG=$LIB_TAG >> $TMPFILE
 declare -f update_src >> $TMPFILE
