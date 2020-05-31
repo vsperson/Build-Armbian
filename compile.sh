@@ -61,7 +61,7 @@ update_src() {
 				fi
 			done
 		else
-			git checkout "${LIB_TAG:-master}"
+			git checkout "${LIB_TAG:-master-arm}"
 		fi
 	fi
 }
