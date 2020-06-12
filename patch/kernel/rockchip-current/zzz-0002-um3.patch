@@ -1,0 +1,16 @@
+--- /arch/arm/boot/dts/rk3288-firefly-reload.dts
++++ /arch/arm/boot/dts/rk3288-firefly-reload.dts
+@@ -282,9 +282,9 @@
+ 	status = "okay";
+ };
+ 
+-&spdif {
+-	status = "okay";
+-};
++//&spdif {
++//	status = "okay";
++//};
+ 
+ &uart0 {
+ 	pinctrl-names = "default";
+
