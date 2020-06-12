@@ -1,0 +1,25 @@
+--- /arch/arm/boot/dts/rk3288-firefly-reload.dts
++++ /arch/arm/boot/dts/rk3288-firefly-reload.dts
+@@ -69,6 +69,21 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&wifi_enable>;
+ 		reset-gpios = <&gpio4 RK_PD4 GPIO_ACTIVE_LOW>;
++	};
++
++	soundcard-hdmi {
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,name = "DW-I2S-HDMI";
++		simple-audio-card,mclk-fs = <512>;
++
++		simple-audio-card,codec {
++			sound-dai = <&hdmi>;
++		};
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s>;
++		};
+ 	};
+ 
+ 	sound {
+
