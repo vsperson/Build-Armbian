@@ -148,6 +148,8 @@ echo "Copy HOME"
 tar -cf - home | (cd $DIR_INSTALL; tar -xpf -)
 echo "Copy LIB"
 tar -cf - lib | (cd $DIR_INSTALL; tar -xpf -)
+echo "Copy LIB64"
+tar -cf - lib64 | (cd $DIR_INSTALL; tar -xpf -)
 echo "Create MEDIA"
 mkdir -p $DIR_INSTALL/media
 #tar -cf - media | (cd $DIR_INSTALL; tar -xpf -)
