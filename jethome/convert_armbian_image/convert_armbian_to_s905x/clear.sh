@@ -1,0 +1,1 @@
+../convert_armbian_common/clear.sh

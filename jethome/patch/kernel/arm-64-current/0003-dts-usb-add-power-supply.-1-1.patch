@@ -1,0 +1,55 @@
+From 961f6f83764de317792d11bd74c4b9d9893ca5c4 Mon Sep 17 00:00:00 2001
+From: qi duan <qi.duan@amlogic.com>
+Date: Wed, 3 Jul 2019 04:25:14 -0400
+Subject: [PATCH] dts: usb: add power-supply.[1/1]
+
+PD#SWPL-10529
+
+Problem:
+no vbus power for usb
+
+Solution:
+enable usb power supply for s400
+
+Verify:
+s400
+
+Change-Id: Ie198c57d925e4c3491eb017ce7ccb7bcbdde3316
+Signed-off-by: qi duan <qi.duan@amlogic.com>
+---
+ arch/arm64/boot/dts/amlogic/meson-axg-s400.dts | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/meson-axg-s400.dts b/arch/arm64/boot/dts/amlogic/meson-axg-s400.dts
+index 99140ba40e51..e7900c269362 100644
+--- a/arch/arm64/boot/dts/amlogic/meson-axg-s400.dts
++++ b/arch/arm64/boot/dts/amlogic/meson-axg-s400.dts
+@@ -139,7 +139,7 @@
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+ 		vin-supply = <&main_12v>;
+-
++		regulator-always-on;
+ 		gpio = <&gpio_ao GPIOAO_13 GPIO_ACTIVE_HIGH>;
+ 		enable-active-high;
+ 	};
+@@ -177,7 +177,7 @@
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+ 		vin-supply = <&vcc_5v>;
+-
++		regulator-always-on;
+ 		gpio = <&gpio_ao GPIOAO_5 GPIO_ACTIVE_HIGH>;
+ 		enable-active-high;
+ 	};
+@@ -684,6 +684,7 @@
+ 
+ &usb0 {
+ 	status = "okay";
++	phy-supply = <&usb_pwr>;
+ };
+ 
+ &pcie_A {
+-- 
+2.26.2
+

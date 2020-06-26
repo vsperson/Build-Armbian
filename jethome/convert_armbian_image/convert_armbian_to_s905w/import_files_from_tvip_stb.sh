@@ -1,0 +1,1 @@
+../convert_armbian_common/s905/import_files_from_tvip_stb.sh
