@@ -1,0 +1,13 @@
+stages:
+  - build
+
+build-jethome-armbian-release:
+  stage: build
+  tags: [stb]
+  script:
+    - bash compile_and_convert_to_s905w_and_a113x.sh
+  only:
+    - tags
+
+# output files:
+# output/images/*
