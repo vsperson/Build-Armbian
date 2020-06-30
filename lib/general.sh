@@ -234,6 +234,13 @@ fetch_from_repo()
 	local ref=$3
 	local ref_subdir=$4
 
+	# The 'offline' variable must always be set to 'true' or 'false'
+	if [ "$OFFLINE_WORK" == "yes" ]; then
+		local offline=true
+	else
+		local offline=false
+	fi
+
 	[[ -z $ref || ( $ref != tag:* && $ref != branch:* && $ref != head && $ref != commit:* ) ]] && exit_with_error "Error in configuration"
 	local ref_type=${ref%%:*}
 	if [[ $ref_type == head ]]; then
@@ -274,37 +281,42 @@ fetch_from_repo()
 		display_alert "Creating local copy"
 		git init -q .
 		git remote add origin $url
+		# Here you need to upload from a new address
+		offline=false
 	fi
 
 	local changed=false
 
-	local local_hash=$(git rev-parse @ 2>/dev/null)
+	# when we work offline we simply return the sources to their original state
+	if ! $offline; then
+		local local_hash=$(git rev-parse @ 2>/dev/null)
 
-	case $ref_type in
-		branch)
-		# TODO: grep refs/heads/$name
-		local remote_hash=$(git ls-remote -h $url "$ref_name" | head -1 | cut -f1)
-		[[ -z $local_hash || $local_hash != $remote_hash ]] && changed=true
-		;;
+		case $ref_type in
+			branch)
+			# TODO: grep refs/heads/$name
+			local remote_hash=$(git ls-remote -h $url "$ref_name" | head -1 | cut -f1)
+			[[ -z $local_hash || $local_hash != $remote_hash ]] && changed=true
+			;;
 
-		tag)
-		local remote_hash=$(git ls-remote -t $url "$ref_name" | cut -f1)
-		if [[ -z $local_hash || $local_hash != $remote_hash ]]; then
-			remote_hash=$(git ls-remote -t $url "$ref_name^{}" | cut -f1)
-			[[ -z $remote_hash || $local_hash != $remote_hash ]] && changed=true
-		fi
-		;;
+			tag)
+			local remote_hash=$(git ls-remote -t $url "$ref_name" | cut -f1)
+			if [[ -z $local_hash || $local_hash != $remote_hash ]]; then
+				remote_hash=$(git ls-remote -t $url "$ref_name^{}" | cut -f1)
+				[[ -z $remote_hash || $local_hash != $remote_hash ]] && changed=true
+			fi
+			;;
 
-		head)
-		local remote_hash=$(git ls-remote $url HEAD | cut -f1)
-		[[ -z $local_hash || $local_hash != $remote_hash ]] && changed=true
-		;;
+			head)
+			local remote_hash=$(git ls-remote $url HEAD | cut -f1)
+			[[ -z $local_hash || $local_hash != $remote_hash ]] && changed=true
+			;;
 
-		commit)
-		[[ -z $local_hash || $local_hash == "@" ]] && changed=true
-		;;
+			commit)
+			[[ -z $local_hash || $local_hash == "@" ]] && changed=true
+			;;
+		esac
 
-	esac
+	fi # offline
 
 	if [[ $changed == true ]]; then
 
@@ -345,24 +357,19 @@ fetch_from_repo()
 		fi
 	elif [[ -n $(git status -uno --porcelain --ignore-submodules=all) ]]; then
 		# working directory is not clean
-		if [[ $FORCE_CHECKOUT == yes ]]; then
-			display_alert " Cleaning .... " "$(git status -s | wc -l) files"
+		display_alert " Cleaning .... " "$(git status -s | wc -l) files"
 
-			# Return the files that are tracked by git to the initial state.
-			git checkout -f -q HEAD
+		# Return the files that are tracked by git to the initial state.
+		git checkout -f -q HEAD
 
-			# Files that are not tracked by git and were added
-			# when the patch was applied must be removed.
-			git clean -qdf
-		else
-			display_alert "In the source of dirty files: " "$(git status -s | wc -l)"
-			display_alert "The compilation process will probably fail." "You have been warned"
-			display_alert "Skipping checkout"
-		fi
+		# Files that are not tracked by git and were added
+		# when the patch was applied must be removed.
+		git clean -qdf
 	else
 		# working directory is clean, nothing to do
 		display_alert "Up to date"
 	fi
+
 	if [[ -f .gitmodules ]]; then
 		display_alert "Updating submodules" "" "ext"
 		# FML: http://stackoverflow.com/a/17692710
@@ -699,10 +706,9 @@ repo-manipulate() {
 			;;
 		purge)
 			for release in "${DISTROS[@]}"; do
-				aptly repo remove -config=${BLTPATH}config/aptly.conf "${release}" 'Name (% linux-*dev*)'
-				repo-remove-old-packages "$release" "armhf" "3"
-				repo-remove-old-packages "$release" "arm64" "3"
-				repo-remove-old-packages "$release" "all" "3"
+				repo-remove-old-packages "$release" "armhf" "5"
+				repo-remove-old-packages "$release" "arm64" "5"
+				repo-remove-old-packages "$release" "all" "5"
 				aptly -config="${SCRIPTPATH}"config/${REPO_CONFIG} -passphrase="${GPG_PASS}" publish update "${release}" > /dev/null 2>&1
 			done
 			exit 0
@@ -816,7 +822,14 @@ prepare_host()
 {
 	display_alert "Preparing" "host" "info"
 
-	if [[ $(dpkg --print-architecture) != arm64 ]]; then
+	# The 'offline' variable must always be set to 'true' or 'false'
+	if [ "$OFFLINE_WORK" == "yes" ]; then
+		local offline=true
+	else
+		local offline=false
+	fi
+
+  if [[ $(dpkg --print-architecture) != arm64 ]]; then
 
 	if [[ $(dpkg --print-architecture) != amd64 ]]; then
 		display_alert "Please read documentation to set up proper compilation environment"
@@ -824,7 +837,7 @@ prepare_host()
 		exit_with_error "Running this tool on non x86-x64 build host in not supported"
 	fi
 
-	fi
+  fi
 
 	# wait until package manager finishes possible system maintanace
 	wait_for_package_manager
@@ -835,7 +848,7 @@ prepare_host()
 	# packages list for host
 	# NOTE: please sync any changes here with the Dockerfile and Vagrantfile
 
-	if [[ $(dpkg --print-architecture) == amd64 ]]; then
+  if [[ $(dpkg --print-architecture) == amd64 ]]; then
 
 	local hostdeps="wget ca-certificates device-tree-compiler pv bc lzop zip binfmt-support build-essential ccache debootstrap ntpdate \
 	gawk gcc-arm-linux-gnueabihf qemu-user-static u-boot-tools uuid-dev zlib1g-dev unzip libusb-1.0-0-dev fakeroot \
@@ -845,7 +858,7 @@ prepare_host()
 	locales ncurses-base pixz dialog systemd-container udev lib32stdc++6 libc6-i386 lib32ncurses5 lib32tinfo5 \
 	bison libbison-dev flex libfl-dev cryptsetup gpgv1 gnupg1 cpio aria2 pigz dirmngr python3-distutils"
 
-	else
+  else
 
 	local hostdeps="wget ca-certificates device-tree-compiler pv bc lzop zip binfmt-support build-essential ccache debootstrap ntpdate \
 	gawk gcc-arm-linux-gnueabihf qemu-user-static u-boot-tools uuid-dev zlib1g-dev unzip libusb-1.0-0-dev fakeroot \
@@ -855,7 +868,7 @@ prepare_host()
 	locales ncurses-base pixz dialog systemd-container udev libc6 qemu\
 	bison libbison-dev flex libfl-dev cryptsetup gpgv1 gnupg1 cpio aria2 pigz dirmngr python3-distutils"
 
-	fi
+  fi
 
 	local codename=$(lsb_release -sc)
 
@@ -889,7 +902,7 @@ prepare_host()
 		exit_with_error "Windows subsystem for Linux is not a supported build environment"
 	fi
 
-	if [[ $(dpkg --print-architecture) == amd64 ]]; then
+  if [[ $(dpkg --print-architecture) == amd64 ]]; then
 
 	if [[ -z $codename || "focal" == "$codename" || "eoan" == "$codename"  || "debbie" == "$codename"  || "buster" == "$codename" ]]; then
 	    hostdeps="${hostdeps/lib32ncurses5 lib32tinfo5/lib32ncurses6 lib32tinfo6}"
@@ -912,7 +925,10 @@ prepare_host()
 		SYNC_CLOCK=no
 	fi
 
-	fi
+  fi
+
+	# Skip verification if you are working offline
+	if ! $offline; then
 
 	# warning: apt-cacher-ng will fail if installed and used both on host and in container/chroot environment with shared network
 	# set NO_APT_CACHER=yes to prevent installation errors in such case
@@ -927,7 +943,7 @@ prepare_host()
 
 	# distribution packages are buggy, download from author
 
-	if [[ $(dpkg --print-architecture) == amd64 ]]; then
+  if [[ $(dpkg --print-architecture) == amd64 ]]; then
 
 	if [[ ! -f /etc/apt/sources.list.d/aptly.list ]]; then
 		display_alert "Updating from external repository" "aptly" "info"
@@ -943,7 +959,7 @@ prepare_host()
 		sed "s/squeeze/nightly/" -i /etc/apt/sources.list.d/aptly.list
 	fi
 
-	fi
+  fi
 
 	if [[ ${#deps[@]} -gt 0 ]]; then
 		display_alert "Installing build dependencies"
@@ -959,21 +975,13 @@ prepare_host()
 		ntpdate -s ${NTP_SERVER:- pool.ntp.org}
 	fi
 
-	if [[ $(dpkg --print-architecture) == amd64 ]]; then
+  if [[ $(dpkg --print-architecture) == amd64 ]]; then
 
 	if [[ $(dpkg-query -W -f='${db:Status-Abbrev}\n' 'zlib1g:i386' 2>/dev/null) != *ii* ]]; then
 		apt-get install -qq -y --no-install-recommends zlib1g:i386 >/dev/null 2>&1
 	fi
 
-	# enable arm binary format so that the cross-architecture chroot environment will work
-	if [[ $KERNEL_ONLY != yes ]]; then
-		modprobe -q binfmt_misc
-		mountpoint -q /proc/sys/fs/binfmt_misc/ || mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
-		test -e /proc/sys/fs/binfmt_misc/qemu-arm || update-binfmts --enable qemu-arm
-		test -e /proc/sys/fs/binfmt_misc/qemu-aarch64 || update-binfmts --enable qemu-aarch64
-	fi
-
-	fi
+  fi
 
 	# create directory structure
 	mkdir -p $SRC/{cache,output} $USERPATCHES_PATH
@@ -985,9 +993,9 @@ prepare_host()
 		find $SRC/output $USERPATCHES_PATH -type d ! -group sudo -exec chgrp --quiet sudo {} \;
 		find $SRC/output $USERPATCHES_PATH -type d ! -perm -g+w,g+s -exec chmod --quiet g+w,g+s {} \;
 	fi
-	mkdir -p $DEST/debs-beta/extra $DEST/debs/extra $DEST/{config,debug,patch} $USERPATCHES_PATH/overlay $SRC/cache/{sources,toolchains,utility,rootfs} $SRC/.tmp
+	mkdir -p $DEST/debs-beta/extra $DEST/debs/extra $DEST/{config,debug,patch} $USERPATCHES_PATH/overlay $SRC/cache/{sources,hash,toolchains,utility,rootfs} $SRC/.tmp
 
-	if [[ $(dpkg --print-architecture) == amd64 ]]; then
+  if [[ $(dpkg --print-architecture) == amd64 ]]; then
 
 	display_alert "Checking for external GCC compilers" "" "info"
 	# download external Linaro compiler and missing special dependencies since they are needed for certain sources
@@ -996,14 +1004,14 @@ prepare_host()
 		"https://dl.armbian.com/_toolchains/gcc-linaro-aarch64-none-elf-4.8-2013.11_linux.tar.xz"
 		"https://dl.armbian.com/_toolchains/gcc-linaro-arm-none-eabi-4.8-2014.04_linux.tar.xz"
 		"https://dl.armbian.com/_toolchains/gcc-linaro-arm-linux-gnueabihf-4.8-2014.04_linux.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabi.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz"
-		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabi.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-5.5.0-2017.10-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz"
+#		"https://dl.armbian.com/_toolchains/gcc-linaro-6.4.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz"
 		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz"
 		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-eabi.tar.xz"
 		"https://dl.armbian.com/_toolchains/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabi.tar.xz"
@@ -1031,7 +1039,17 @@ prepare_host()
 		fi
 	done
 
+	fi # check offline
+
+	# enable arm binary format so that the cross-architecture chroot environment will work
+	if [[ $KERNEL_ONLY != yes ]]; then
+		modprobe -q binfmt_misc
+		mountpoint -q /proc/sys/fs/binfmt_misc/ || mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
+		test -e /proc/sys/fs/binfmt_misc/qemu-arm || update-binfmts --enable qemu-arm
+		test -e /proc/sys/fs/binfmt_misc/qemu-aarch64 || update-binfmts --enable qemu-aarch64
 	fi
+
+  fi
 
 	[[ ! -f $USERPATCHES_PATH/customize-image.sh ]] && cp $SRC/config/templates/customize-image.sh.template $USERPATCHES_PATH/customize-image.sh
 

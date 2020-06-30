@@ -120,6 +120,7 @@ if [[ $ADD_UBOOT == yes ]]; then
 
 	# read uboot version
 	local version=$(grab_version "$ubootdir")
+	local hash=$(git --git-dir="$ubootdir"/.git rev-parse HEAD)
 
 	display_alert "Compiling u-boot" "$version" "info"
 
@@ -265,6 +266,11 @@ if [[ $ADD_UBOOT == yes ]]; then
 	[[ ! -f $SRC/.tmp/${uboot_name}.deb ]] && exit_with_error "Building u-boot package failed"
 
 	mv $SRC/.tmp/${uboot_name}.deb ${DEB_STORAGE}/
+
+	# store git hash to the file
+#	echo $hash > ${SRC}/cache/hash/${CHOSEN_UBOOT}.githash
+#	find "${SRC}/patch/u-boot/${BOOTPATCHDIR}" -maxdepth 1 -printf '%s %P\n' | git hash-object --stdin >> "${SRC}/cache/hash/${CHOSEN_UBOOT}.githash"
+
 fi
 }
 
@@ -289,6 +295,9 @@ compile_kernel()
 
 	# read kernel version
 	local version=$(grab_version "$kerneldir")
+
+	# read kernel git hash
+	local hash=$(git --git-dir="$kerneldir"/.git rev-parse HEAD)
 
 	# build 3rd party drivers
 	compilation_prepare
@@ -362,6 +371,9 @@ compile_kernel()
 			'make $CTHREADS ARCH=$ARCHITECTURE CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" oldconfig'
 		eval CCACHE_BASEDIR="$(pwd)" env PATH=$toolchain:$PATH \
 			'make $CTHREADS ARCH=$ARCHITECTURE CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" ${KERNEL_MENUCONFIG:-menuconfig}'
+
+		[[ ${PIPESTATUS[0]} -ne 0 ]] && exit_with_error "Error kernel menuconfig failed"
+
 		# store kernel config in easily reachable place
 		display_alert "Exporting new kernel config" "$DEST/config/$LINUXCONFIG.config" "info"
 		cp .config $DEST/config/$LINUXCONFIG.config
@@ -411,7 +423,7 @@ compile_kernel()
 		ARCH=$ARCHITECTURE \
 		DEBFULLNAME="$MAINTAINER" \
 		DEBEMAIL="$MAINTAINERMAIL" \
-		CROSS_COMPILE="$CCACHE $KERNEL_COMPILER" 2>>$DEST/debug/compilation.log' \
+		CROSS_COMPILE="$CCACHE $KERNEL_COMPILER"'  \
 		${PROGRESS_LOG_TO_FILE:+' | tee -a $DEST/debug/compilation.log'} \
 		${OUTPUT_DIALOG:+' | dialog --backtitle "$backtitle" --progressbox "Creating kernel packages..." $TTY_Y $TTY_X'} \
 		${OUTPUT_VERYSILENT:+' >/dev/null 2>/dev/null'}
@@ -439,6 +451,14 @@ compile_kernel()
 	# remove firmare image packages here - easier than patching ~40 packaging scripts at once
 	rm -f linux-firmware-image-*.deb
 	mv *.deb ${DEB_STORAGE}/ || exit_with_error "Failed moving kernel DEBs"
+
+	# store git hash to the file
+	echo $hash > ${SRC}/cache/hash/linux-image-${BRANCH}-${LINUXFAMILY}.githash
+	[[ -z ${KERNELPATCHDIR} ]] && KERNELPATCHDIR=$LINUXFAMILY-$BRANCH
+	[[ -z ${LINUXCONFIG} ]] && LINUXCONFIG=linux-$LINUXFAMILY-$BRANCH
+        hash_watch_1=$(find "${SRC}/patch/kernel/${KERNELPATCHDIR}" -maxdepth 1 -printf '%s %P\n')
+        hash_watch_2=$(cat "${SRC}/config/kernel/${LINUXCONFIG}.config")
+        echo ${hash_watch_1}${hash_watch_2} | git hash-object --stdin >> "${SRC}/cache/hash/linux-image-${BRANCH}-${LINUXFAMILY}.githash"
 }
 
 

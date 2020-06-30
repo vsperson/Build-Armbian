@@ -9,14 +9,3 @@
  #endif
  
  /*
---- a/arch/arm64/Makefile
-+++ b/arch/arm64/Makefile
-@@ -126,7 +126,7 @@
-	 int(2 * 1024 * 1024 / (2 ^ $(CONFIG_ARM64_PAGE_SHIFT)) * \
-	 rand()) * (2 ^ $(CONFIG_ARM64_PAGE_SHIFT))}")
- else
--TEXT_OFFSET := 0x0
-+TEXT_OFFSET := 0x01080000
- endif
- 
- ifeq ($(CONFIG_KASAN_SW_TAGS), y)
