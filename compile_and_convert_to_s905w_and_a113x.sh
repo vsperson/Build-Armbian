@@ -5,6 +5,8 @@
 set -e # Exit immediately if a command exits with a non-zero status
 set -u # Treat unset variables and parameters as an error
 
+export COMPOSE_INTERACTIVE_NO_CLI=1
+
 SRC="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 JETHOME=$SRC/jethome
