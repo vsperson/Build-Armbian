@@ -73,7 +73,7 @@ shrink_rootfs_partition() {
   local MAX_CAPACITY=4680843264 # value is obtained from console error when flash very big image file through USB Burning Tool
   if [[ -n "$1" ]] ; then
     print_cmd_title  "Shrinking $1 size. Current size is $CURRENT_SIZE_HUMAN ($CURRENT_SIZE_BYTES bytes) ..."
-    e2fsck -f $1
+    e2fsck -pvf $1
     if (( ${CURRENT_SIZE_BYTES} > ${MAX_CAPACITY} )); then
       echo "Current size ${CURRENT_SIZE_BYTES} bytes greater than burning-tool max available capacity ${MAX_CAPACITY}. Shrinking file system..."
       echo "resize2fs $1 $((${MAX_CAPACITY}/1024))K"
