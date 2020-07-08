@@ -20,7 +20,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: Fix Permitions
-      run: sudo chown -R $USER:$USER /home/actions/actions-runner/_work/{REPOSITORY_NAME_HERE}
+      run: sudo chown -R actions: /home/actions/actions-runner/_work/
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
