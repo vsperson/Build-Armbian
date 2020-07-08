@@ -25,3 +25,15 @@ jobs:
     # Runs a single command using the runners shell
     - name: Run a one-line script
       run: ./compile_and_convert_to_s905w_and_a113x.sh
+      
+    - name: Archive img artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: images
+        path: output/images
+
+    - name: Archive deb artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: deb
+        path: output/debs
